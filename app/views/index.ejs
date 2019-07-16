@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
+
+</head>
+
+
+<body>
+
+
+    <form action="/login" method="POST" class="center">
+        <h1>Sign In</h1>
+        <% if(message=='1') { %>
+            <div class="row">
+                <h4>
+                    Wrong Credentials
+                </h4>
+            </div>
+            <% } %>
+                <div class="row">
+                    <div class="col s12 m4"></div>
+                    <div class="col s12 m4">
+                        <input type="text" placeholder="Username" name="user" required/>
+                        <input type="password" placeholder="Password" name="password" required/>
+                    </div>
+                    <div class="col s12 m4"></div>
+                </div>
+
+
+                <button type="submit" class="btn waves-effect waves-light">Login</button><br><br>
+                <a href="/register">New user?Click to Register</a>
+    </form>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>
+</body>
+
+</html>

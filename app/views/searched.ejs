@@ -1,0 +1,61 @@
+<html>
+
+<head>
+    <title></title>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>
+</head>
+
+<body>
+    <div class="row">
+        <nav>
+            <div class="nav-wrapper">
+                <a href="#" class="brand-logo">Library System</a>
+                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                    <li><a href="/logout">Logout</a></li>
+
+                </ul>
+            </div>
+        </nav>
+    </div>
+    <div class="row">
+        <table class="centered">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Author</th>
+                    <th>Number of copies</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <% for(var i=0;i<searchedBooks.length;i++){ %>
+                    <tr>
+                        <td>
+                            <%= searchedBooks[0].title %>
+                        </td>
+                        <td>
+                            <% for(var j=0;j<searchedBooks[i].authors.length;++j){%>
+                                <%- JSON.stringify(searchedBooks[i].authors[j]) %> ,
+                                    <% } %>
+                        </td>
+                        <td>
+                            <%=searchedBooks[0].noc %>
+                        </td>
+                    </tr>
+
+                    <%}%>
+
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>
