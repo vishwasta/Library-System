@@ -8,6 +8,7 @@ var userSchema = new Schema({
     name: String,
     year: String,
     dept: String,
+    books: Array,
 
 
 

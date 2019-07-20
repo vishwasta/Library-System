@@ -7,6 +7,8 @@ var sha512 = require('js-sha512');
 var sess;
 var searchedBooks;
 
+var error;
+
 exports.render = async function(req, res, next) {
     sess = req.session;
     if (sess.username) {
@@ -75,7 +77,7 @@ exports.login = async function(req, res, next) {
 
 exports.loggedin = async function(req, res) {
     console.log(sess.username);
-    res.render('home', { username: sess.username });
+    res.render('home', { username: sess.username, error: error });
 }
 
 exports.search = async function(req, res) {
@@ -106,7 +108,8 @@ exports.borrow = async function(req, res, next) {
     var libid2 = req.body.libraryid;
     var un = sess.username;
     var numberofcopies;
-
+    var name;
+    var flag1 = false;
     await book.find({ 'bookid': bookid }, 'noc', function(err, noc) {
         if (err) {
             console.log("error");
@@ -125,34 +128,77 @@ exports.borrow = async function(req, res, next) {
     });
 
 
-    await user.find({ 'username': un }, 'libid', function(err, lid) {
+    await user.find({ 'username': un }, 'libid books', function(err, lid) {
         if (err) {
             console.log("error");
             res.redirect('/loggedin');
             return handleError(err);
         } else {
-
+            var j = 0;
             console.log(lid[0].libid);
+            i = lid[0].books.length;
+            console.log(i);
+            for (j = 0; j < i; j++) {
+                if (lid[0].books[j] == bookid) {
+                    error = "alreadytaken";
+                    flag1 = true;
+                    console.log('flag1');
 
-            if (lid[0].libid == libid2) {
-                console.log('true')
-
-                book.updateOne({ 'bookid': bookid }, { $set: { 'noc': numberofcopies - 1 } }, function(err, update) {
-                    if (err) {
-
-                        console.log("error");
-                    } else {
-                        res.redirect('/loggedin/borrowed');
-                    }
-
-                });
-            } else {
-                res.redirect('/loggedin');
+                }
             }
+            if (flag1 == true) {
+                res.redirect('/loggedin');
+            } else if (flag1 == false) {
+                if (lid[0].libid == libid2) {
+                    console.log('true');
+                    if (i < 3) {
+                        i = i
+                        if (i == 0) {
+                            name = 'books.0';
+                        } else if (i == 1) {
+                            name = "books.1";
+                        } else if (i == 2) {
+                            name = 'books.2';
+                        }
+                        user.updateOne({ 'username': un }, {
+                            $set: {
+                                [name]: bookid
+                            }
+                        }, function(err, bookupdate) {
+                            if (err) {
+                                console.log("Not updated")
+                            } else {
+                                book.updateOne({ 'bookid': bookid }, { $set: { 'noc': numberofcopies - 1 } }, function(err, update) {
+                                    if (err) {
 
+                                        console.log("error");
+                                    } else {
+                                        res.redirect('/loggedin/borrowed');
+                                    }
+
+                                });
+
+                            }
+                        });
+
+
+                    } else {
+                        console.log("maxbooks");
+                        error = "Maxbooks"
+                        res.redirect('/loggedin')
+                    }
+                } else {
+                    console.log("id error");
+                    error = "iderror"
+                    res.redirect('/loggedin');
+                }
+            }
         }
 
+
+
     });
+
 
 };
 
@@ -193,7 +239,7 @@ exports.return = async function(req, res) {
     if (flag == true) {
 
 
-        await user.find({ 'username': un }, 'libid', function(err, lid) {
+        await user.find({ 'username': un }, 'libid books', function(err, lid) {
             if (err) {
                 console.log("error");
                 res.redirect('/loggedin');
@@ -201,26 +247,48 @@ exports.return = async function(req, res) {
             } else {
 
                 console.log(lid[0].libid);
+                var rbooks = lid[0].books;
+                var j = 0;
+                var k;
+                for (j = 0; j < rbooks.length; j++) {
+                    if (rbooks[j] == bookid) {
+                        var val = j;
+                        break;
+                    }
 
+                }
                 if (lid[0].libid == libid2) {
-                    console.log('true')
-
-                    book.updateOne({ 'bookid': bookid }, { $set: { 'noc': numberofcopies + 1 } }, function(err, update) {
+                    console.log('true');
+                    user.updateOne({ 'username': un }, {
+                        $pull: {
+                            'books': bookid
+                        }
+                    }, function(err, pull) {
                         if (err) {
-
-                            console.log("error");
+                            console.log(err);
                         } else {
-                            res.redirect('/loggedin/returned');
+                            book.updateOne({ 'bookid': bookid }, { $set: { 'noc': numberofcopies + 1 } }, function(err, update) {
+                                if (err) {
+
+                                    console.log("error");
+                                } else {
+                                    res.redirect('/loggedin/returned');
+                                }
+
+                            });
                         }
 
                     });
+
                 } else {
+                    error = "iderror"
                     res.redirect('/loggedin');
                 }
 
             }
 
         });
+
     }
 
 };
