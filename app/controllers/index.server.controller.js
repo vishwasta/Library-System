@@ -109,95 +109,112 @@ exports.borrow = async function(req, res, next) {
     var un = sess.username;
     var numberofcopies;
     var name;
+    var bookfind = false;
     var flag1 = false;
-    await book.find({ 'bookid': bookid }, 'noc', function(err, noc) {
-        if (err) {
-            console.log("error");
-            res.redirect('/loggedin');
-        } else {
-            console.log("Inthis");
-            if (noc == []) {
+    var execuser = false;
+
+    if (await book.find({ 'bookid': bookid }).count() > 0) {
+        bookfind = true;
+    }
+    if (bookfind == true) {
+        await book.find({ 'bookid': bookid }, 'noc', function(err, noc) {
+            if (err) {
+                console.log("error");
                 res.redirect('/loggedin');
             } else {
+                console.log("Inthis");
+
+
 
                 numberofcopies = noc[0].noc;
-
+                execuser = true;
                 console.log(noc);
+
             }
-        }
-    });
+        });
+    } else {
+        error = 'booknotfound';
+        res.redirect('/loggedin');
+
+    }
 
 
-    await user.find({ 'username': un }, 'libid books', function(err, lid) {
-        if (err) {
-            console.log("error");
-            res.redirect('/loggedin');
-            return handleError(err);
-        } else {
-            var j = 0;
-            console.log(lid[0].libid);
-            i = lid[0].books.length;
-            console.log(i);
-            for (j = 0; j < i; j++) {
-                if (lid[0].books[j] == bookid) {
-                    error = "alreadytaken";
-                    flag1 = true;
-                    console.log('flag1');
 
-                }
-            }
-            if (flag1 == true) {
+
+    if (execuser == true) {
+        await user.find({ 'username': un }, 'libid books', function(err, lid) {
+            if (err) {
+                console.log("error");
                 res.redirect('/loggedin');
-            } else if (flag1 == false) {
-                if (lid[0].libid == libid2) {
-                    console.log('true');
-                    if (i < 3) {
-                        i = i
-                        if (i == 0) {
-                            name = 'books.0';
-                        } else if (i == 1) {
-                            name = "books.1";
-                        } else if (i == 2) {
-                            name = 'books.2';
-                        }
-                        user.updateOne({ 'username': un }, {
-                            $set: {
-                                [name]: bookid
-                            }
-                        }, function(err, bookupdate) {
-                            if (err) {
-                                console.log("Not updated")
-                            } else {
-                                book.updateOne({ 'bookid': bookid }, { $set: { 'noc': numberofcopies - 1 } }, function(err, update) {
-                                    if (err) {
+                return handleError(err);
+            } else {
+                var j = 0;
+                console.log(lid[0].libid);
+                i = lid[0].books.length;
+                console.log(i);
+                for (j = 0; j < i; j++) {
+                    if (lid[0].books[j] == bookid) {
+                        error = "alreadytaken";
+                        flag1 = true;
+                        console.log('flag1');
 
-                                        console.log("error");
-                                    } else {
-                                        res.redirect('/loggedin/borrowed');
-                                    }
-
-                                });
-
-                            }
-                        });
-
-
-                    } else {
-                        console.log("maxbooks");
-                        error = "Maxbooks"
-                        res.redirect('/loggedin')
                     }
-                } else {
-                    console.log("id error");
-                    error = "iderror"
+                }
+                if (flag1 == true) {
                     res.redirect('/loggedin');
+                } else if (flag1 == false) {
+                    if (lid[0].libid == libid2) {
+                        console.log('true');
+                        if (i < 3) {
+                            i = i
+                            if (i == 0) {
+                                name = 'books.0';
+                            } else if (i == 1) {
+                                name = "books.1";
+                            } else if (i == 2) {
+                                name = 'books.2';
+                            }
+                            user.updateOne({ 'username': un }, {
+                                $set: {
+                                    [name]: bookid
+                                }
+                            }, function(err, bookupdate) {
+                                if (err) {
+                                    console.log("Not updated")
+                                } else {
+                                    book.updateOne({ 'bookid': bookid }, { $set: { 'noc': numberofcopies - 1 } }, function(err, update) {
+                                        if (err) {
+
+                                            console.log("error");
+                                        } else {
+                                            res.redirect('/loggedin/borrowed');
+                                        }
+
+                                    });
+
+                                }
+                            });
+
+
+                        } else {
+                            console.log("maxbooks");
+                            error = "Maxbooks"
+                            res.redirect('/loggedin')
+                        }
+                    } else {
+                        console.log("id error");
+                        error = "iderror"
+                        res.redirect('/loggedin');
+                    }
                 }
             }
-        }
 
 
 
-    });
+        });
+    } else {
+        res.redirect('/loggedin');
+    }
 
 
 };
@@ -219,23 +236,35 @@ exports.return = async function(req, res) {
     var libid2 = req.body.returnlibraryid;
     var un = sess.username;
     var numberofcopies;
+    var bookfind = false;
+    var bnb = false;
 
-    await book.find({ 'bookid': bookid }, 'noc', function(err, noc) {
-        if (err) {
-            console.log("error");
-            res.redirect('/loggedin');
-        } else {
-            console.log("Inthis");
-            if (noc == null) {
+    if (await book.find({ 'bookid': bookid }).count() > 0) {
+        bookfind = true;
+    }
+
+    if (bookfind == true) {
+
+        await book.find({ 'bookid': bookid }, 'noc', function(err, noc) {
+            if (err) {
+                console.log("error");
                 res.redirect('/loggedin');
             } else {
+                console.log("Inthis");
+                if (noc == null) {
+                    res.redirect('/loggedin');
+                } else {
 
-                numberofcopies = noc[0].noc;
-                flag = true;
-                console.log(noc);
+                    numberofcopies = noc[0].noc;
+                    flag = true;
+                    console.log(noc);
+                }
             }
-        }
-    });
+        });
+    } else {
+        error = 'booknotfound'
+        res.redirect('/loggedin');
+    }
     if (flag == true) {
 
 
@@ -254,40 +283,51 @@ exports.return = async function(req, res) {
                     if (rbooks[j] == bookid) {
                         var val = j;
                         break;
+                    } else {
+
+
+                        bnb = true;
+                        break;
                     }
 
                 }
-                if (lid[0].libid == libid2) {
-                    console.log('true');
-                    user.updateOne({ 'username': un }, {
-                        $pull: {
-                            'books': bookid
-                        }
-                    }, function(err, pull) {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            book.updateOne({ 'bookid': bookid }, { $set: { 'noc': numberofcopies + 1 } }, function(err, update) {
-                                if (err) {
+                if (bnb == false) {
+                    if (lid[0].libid == libid2) {
+                        console.log('true');
+                        user.updateOne({ 'username': un }, {
+                            $pull: {
+                                'books': bookid
+                            }
+                        }, function(err, pull) {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                book.updateOne({ 'bookid': bookid }, { $set: { 'noc': numberofcopies + 1 } }, function(err, update) {
+                                    if (err) {
 
-                                    console.log("error");
-                                } else {
-                                    res.redirect('/loggedin/returned');
-                                }
+                                        console.log("error");
+                                    } else {
+                                        res.redirect('/loggedin/returned');
+                                    }
 
-                            });
-                        }
+                                });
+                            }
 
-                    });
+                        });
+
+                    } else {
+                        error = "iderror"
+                        res.redirect('/loggedin');
+                    }
 
                 } else {
-                    error = "iderror"
+                    error = 'bnb'
                     res.redirect('/loggedin');
                 }
-
             }
 
         });
+
 
     }
 
